@@ -92,62 +92,62 @@ export class Agent {
    * @returns The response from the agent. If the agent ran successfully, the response will be the final response from the agent. If the agent stopped running due to a maximum number of steps being reached, the response will be the last response from the agent.
    */
   async *stream(message: UserMessage): AsyncGenerator<AssistantMessage | ToolMessage> {
-    let steps = 0;
-    let assistantMessage: AssistantMessage | undefined;
     this._appendMessage(message);
-    while (true) {
-      steps++;
-      if (steps > this.options.maxSteps) {
-        throw new Error("Maximum number of steps reached");
-      }
-
-      assistantMessage = await this.model.invoke({
-        prompt: this.prompt,
-        messages: this.messages,
-        tools: this.tools,
-      });
-      this._appendMessage(assistantMessage);
+    for (let step = 1; step <= this.options.maxSteps; step++) {
+      const assistantMessage = await this._think();
       yield assistantMessage;
 
-      if (assistantMessage.content.some((content) => content.type === "tool_use")) {
-        // If there are tool calls, the agent needs to invoke the tools in parallel.
-        const pending = assistantMessage.content
-          .filter((content) => content.type === "tool_use")
-          .map(async (content, index) => {
-            const toolUse = content as ToolUseContent;
-            const tool = this.tools?.find((t) => t.name === toolUse.name);
-            if (!tool) {
-              throw new Error(`Tool ${toolUse.name} not found`);
-            }
-            const result = await tool.invoke(toolUse.input);
-            return { index, toolUseId: toolUse.id, result };
-          });
+      const toolUses = this._extractToolUses(assistantMessage);
+      if (toolUses.length === 0) return;
 
-        const remaining = new Set(pending.map((_, i) => i));
+      yield* this._act(toolUses);
+    }
+    throw new Error("Maximum number of steps reached");
+  }
 
-        while (remaining.size > 0) {
-          const resolved = (await Promise.race(
-            [...remaining].map((i) => pending[i]),
-          ))!;
-          remaining.delete(resolved.index);
+  private async _think(): Promise<AssistantMessage> {
+    const message = await this.model.invoke({
+      prompt: this.prompt,
+      messages: this.messages,
+      tools: this.tools,
+    });
+    this._appendMessage(message);
+    return message;
+  }
 
-          const toolMessage: ToolMessage = {
-            role: "tool",
-            content: [
-              {
-                type: "tool_result",
-                tool_use_id: resolved.toolUseId,
-                content: stringifyToolResult(resolved.result),
-              },
-            ],
-          };
-          this._appendMessage(toolMessage);
-          yield toolMessage;
-        }
-      } else {
-        // If no tool calls, the agent has finished its work.
-        break;
-      }
+  private _extractToolUses(message: AssistantMessage): ToolUseContent[] {
+    return message.content.filter(
+      (content): content is ToolUseContent => content.type === "tool_use",
+    );
+  }
+
+  private async *_act(toolUses: ToolUseContent[]): AsyncGenerator<ToolMessage> {
+    const pending = toolUses.map(async (toolUse, index) => {
+      const tool = this.tools?.find((t) => t.name === toolUse.name);
+      if (!tool) throw new Error(`Tool ${toolUse.name} not found`);
+      const result = await tool.invoke(toolUse.input);
+      return { index, toolUseId: toolUse.id, result };
+    });
+
+    const remaining = new Set(pending.map((_, i) => i));
+    while (remaining.size > 0) {
+      const resolved = (await Promise.race(
+        [...remaining].map((i) => pending[i]),
+      ))!;
+      remaining.delete(resolved.index);
+
+      const toolMessage: ToolMessage = {
+        role: "tool",
+        content: [
+          {
+            type: "tool_result",
+            tool_use_id: resolved.toolUseId,
+            content: stringifyToolResult(resolved.result),
+          },
+        ],
+      };
+      this._appendMessage(toolMessage);
+      yield toolMessage;
     }
   }
 
