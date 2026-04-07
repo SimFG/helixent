@@ -88,5 +88,12 @@ export function ToolUseContentItem({ content }: { content: ToolUseContent }) {
           <Text color={currentTheme.colors.secondaryText}>└─ {content.input.path as string}</Text>
         </Box>
       );
+    default:
+      return (
+        <Box flexDirection="column">
+          <Text>Tool call</Text>
+          <Text color={currentTheme.colors.secondaryText}>└─ {content.name}</Text>
+        </Box>
+      );
   }
 }
