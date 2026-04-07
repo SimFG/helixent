@@ -70,8 +70,8 @@ export const strReplaceTool = defineTool({
 
     // Make sure the parent directory exists
     const parentDir = parse(path).dir;
-    if (await exists(parentDir)) {
-      await mkdir(parentDir);
+    if (!(await exists(parentDir))) {
+      await mkdir(parentDir, { recursive: true });
     }
 
     await file.write(updated);
