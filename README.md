@@ -1,6 +1,13 @@
+<img width="1024" height="434" alt="image" src="https://github.com/user-attachments/assets/aca4c8e9-5df2-4760-ac38-dde4db788beb" />
+
 # Helixent
 
-Helixent is a small library for building **ReAct-style** agent loops based on the **Bun** stack.
+[![Bun](https://img.shields.io/badge/Bun-000000?logo=bun&logoColor=ffffff)](https://bun.com)
+[![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=ffffff)](https://www.typescriptlang.org)
+[![Ink](https://img.shields.io/badge/Ink-000000?logo=npm&logoColor=ffffff)](https://github.com/vadimdemedes/ink)
+[![React](https://img.shields.io/badge/React-61DAFB?logo=react&logoColor=000000)](https://react.dev)
+
+Helixent is a blue rabbit that writes code. It includes an Agent Loop, a Coding Agent, and a nice CLI.
 
 ## Demo
 
