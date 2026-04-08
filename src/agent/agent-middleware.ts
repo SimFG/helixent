@@ -70,6 +70,13 @@ export type AfterToolUseParams = {
   toolResult: unknown;
 };
 
+export type BeforeToolUseResult =
+  | Partial<AgentContext>
+  | { readonly __skip: true; readonly result: unknown }
+  | null
+  | undefined
+  | void;
+
 export interface AgentMiddleware {
   /**
    * Runs immediately before the model is invoked.
@@ -117,9 +124,9 @@ export interface AgentMiddleware {
   /**
    * Runs immediately before a tool is invoked.
    * @param params - Hook parameters.
-   * @returns Optional context updates to merge into `context`.
+   * @returns Optional context updates to merge into `context`, or a skip instruction to bypass tool execution.
    */
-  beforeToolUse?: (params: BeforeToolUseParams) => Promise<Partial<AgentContext> | null | undefined | void>;
+  beforeToolUse?: (params: BeforeToolUseParams) => Promise<BeforeToolUseResult>;
   /**
    * Runs immediately after a tool invocation resolves.
    * @param params - Hook parameters.

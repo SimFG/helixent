@@ -1,6 +1,7 @@
 import { Box, Static } from "ink";
 import { useMemo } from "react";
 
+import { ApprovalPrompt } from "./components/approval-prompt";
 import { Footer } from "./components/footer";
 import { Header } from "./components/header";
 import { InputBox } from "./components/input-box";
@@ -8,6 +9,7 @@ import { MessageHistory, MessageHistoryItem } from "./components/message-history
 import { StreamingIndicator } from "./components/streaming-indicator";
 import { TodoPanel } from "./components/todo-panel";
 import { useAgentLoop } from "./hooks/use-agent-loop";
+import { useApprovalManager } from "./hooks/use-approval-manager";
 import { buildTodoViewState, getNextTodo } from "./todo-view";
 
 function allDone(todos?: { status: string }[]) {
@@ -16,6 +18,8 @@ function allDone(todos?: { status: string }[]) {
 
 export function App() {
   const { streaming, messages, onSubmit, abort } = useAgentLoop();
+  const { approvalRequest, respondToApproval } = useApprovalManager();
+  
   const { latestTodos, todoSnapshots, toolUses } = useMemo(() => buildTodoViewState(messages), [messages]);
   const activeMessages = streaming ? messages.slice(-1) : [];
   const staticMessages = streaming ? messages.slice(0, -1) : messages;
@@ -44,9 +48,17 @@ export function App() {
           todoSnapshots={todoSnapshots}
           toolUses={toolUses}
         />
-        <StreamingIndicator streaming={streaming} nextTodo={nextTodo} />
+        {approvalRequest ? null : <StreamingIndicator streaming={streaming} nextTodo={nextTodo} />}
         {!hideTodos && <TodoPanel todos={latestTodos} />}
-        <InputBox onSubmit={onSubmit} onAbort={abort} />
+        {approvalRequest ? (
+          <ApprovalPrompt
+            toolUse={approvalRequest.toolUse}
+            onApprove={() => respondToApproval(true)}
+            onDeny={() => respondToApproval(false)}
+          />
+        ) : (
+          <InputBox onSubmit={onSubmit} onAbort={abort} />
+        )}
       </Box>
       <Footer />
     </Box>

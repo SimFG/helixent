@@ -1,9 +1,10 @@
 import { join } from "path";
 
 import { Agent } from "@/agent";
+import { createApprovalMiddleware } from "@/agent/approval";
 import { createSkillsMiddleware } from "@/agent/skills/skills-middleware";
 import { createTodoSystem } from "@/agent/todos/todos";
-import type { Model, NonSystemMessage } from "@/foundation";
+import type { Model, NonSystemMessage, ToolUseContent } from "@/foundation";
 
 import { bashTool } from "../tools/bash";
 import { readFileTool } from "../tools/read-file";
@@ -14,10 +15,13 @@ export async function createCodingAgent({
   model,
   cwd = process.cwd(),
   skillsDirs = [join(process.cwd(), ".agents/skills")],
+  askUser,
 }: {
   model: Model;
   cwd?: string;
   skillsDirs?: string[];
+  // eslint-disable-next-line no-unused-vars
+  askUser?: (toolUse: ToolUseContent) => Promise<boolean>;
 }) {
   const agentsFile = Bun.file(`${cwd}/AGENTS.md`);
   const messages: NonSystemMessage[] = [];
@@ -35,6 +39,16 @@ export async function createCodingAgent({
   }
   const { tool: todoTool, middleware: todoMiddleware } = createTodoSystem();
 
+  const middlewares = [createSkillsMiddleware(skillsDirs), todoMiddleware];
+  if (askUser) {
+    middlewares.push(
+      createApprovalMiddleware({
+        requiresApproval: ["bash", "write_file", "str_replace"],
+        askUser,
+      }),
+    );
+  }
+
   return new Agent({
     model,
     prompt: `<agent name="Helixent" role="leading_agent" description="A coding agent">
@@ -50,6 +64,6 @@ Use the given tools and skills to perform parallel/sequential operations and sol
 `,
     messages,
     tools: [bashTool, readFileTool, writeFileTool, strReplaceTool, todoTool],
-    middlewares: [createSkillsMiddleware(skillsDirs), todoMiddleware],
+    middlewares,
   });
 }

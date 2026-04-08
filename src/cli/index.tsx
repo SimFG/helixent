@@ -3,6 +3,7 @@ import { join } from "node:path";
 import { Command } from "commander";
 import { render } from "ink";
 
+import { globalApprovalManager } from "@/agent/approval";
 import { validateIntegrity } from "@/cli/bootstrap";
 import { registerCommands } from "@/cli/commands";
 import { loadConfig } from "@/cli/config";
@@ -60,6 +61,7 @@ if (args.length > 0) {
       "~/.agents/skills",
       "~/.helixent/skills",
     ],
+    askUser: globalApprovalManager.askUser
   });
 
   render(
