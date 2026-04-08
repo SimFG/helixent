@@ -142,15 +142,16 @@ function FirstRunWizard({ onComplete, onAbort }: FirstRunWizardProps) {
   );
 
   if (step === "welcome") {
+    console.info(`_  _ ____ _    _ _  _ ____ _  _ ___
+|__| |___ |    |  \\/  |___ |\\ |  |
+|  | |___ |___ | _/\\_ |___ | \\|  | \n\n`);
     return (
       <Box flexDirection="column" rowGap={1}>
         <Text bold color="cyan">
           Welcome to Helixent
         </Text>
-        <Text>
-          First run setup: choose a provider, enter your API key, and pick a model name. Press Enter to continue, or Esc
-          to quit.
-        </Text>
+        <Text>First run setup: choose a model provider, enter your API key, and pick a model name.</Text>
+        <Text color={currentTheme.colors.dimText}>Press Enter to continue, or Esc to quit.</Text>
       </Box>
     );
   }
