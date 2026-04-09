@@ -68,5 +68,6 @@ if (args.length > 0) {
     <AgentLoopProvider agent={agent}>
       <App />
     </AgentLoopProvider>,
+    { patchConsole: false },
   );
 }
