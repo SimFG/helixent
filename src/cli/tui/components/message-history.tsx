@@ -1,6 +1,7 @@
 import { Box, Text } from "ink";
 import { memo } from "react";
 
+import { summarizeToolResultText } from "@/agent/tool-result-summary";
 import type { AssistantMessage, NonSystemMessage, ToolMessage, ToolUseContent, UserMessage } from "@/foundation";
 
 import { currentTheme } from "../themes";
@@ -295,7 +296,7 @@ function summarizeToolResult(content: string, toolUse?: ToolUseContent) {
     case "mkdir":
     case "move_path":
     case "apply_patch":
-      return summarizeStructuredToolResult(content);
+      return summarizeToolResultText(content) ?? content;
     case "ask_user_question":
       return summarizeAskUserQuestionResult(content);
     default:

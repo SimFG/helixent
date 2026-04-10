@@ -1,16 +1,6 @@
-export type ToolResult<T> =
-  | {
-      ok: true;
-      summary: string;
-      data: T;
-    }
-  | {
-      ok: false;
-      summary: string;
-      error: string;
-      code?: string;
-      details?: Record<string, unknown>;
-    };
+import type { StructuredToolResult } from "@/foundation";
+
+export type ToolResult<T> = StructuredToolResult<T>;
 
 export function okToolResult<T>(summary: string, data: T): ToolResult<T> {
   return { ok: true, summary, data };

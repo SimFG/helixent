@@ -36,8 +36,8 @@ describe("fileInfoTool", () => {
     });
 
     if (result.ok) {
-      expect(result.data.modifiedTime).toMatch(/T/);
-      expect(result.data.createdTime).toMatch(/T/);
+      expect(result.data!.modifiedTime).toMatch(/T/);
+      expect(result.data!.createdTime).toMatch(/T/);
     }
   });
 

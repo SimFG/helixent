@@ -1,3 +1,4 @@
+import { summarizeToolResultText } from "@/agent/tool-result-summary";
 import type { AssistantMessage, NonSystemMessage, ToolMessage, ToolUseContent, UserMessage } from "@/foundation";
 
 const ESC = "\x1b[";
@@ -78,8 +79,9 @@ function toolUseText(content: ToolUseContent): string {
 function toolMessageText(message: ToolMessage): string | null {
   const parts: string[] = [];
   for (const content of message.content) {
-    if (content.content.startsWith("Error:")) {
-      parts.push(`${dim("✓")} ${dim(content.content)}`);
+    const summary = summarizeToolResultText(content.content);
+    if (summary) {
+      parts.push(`${dim("✓")} ${dim(summary)}`);
     }
   }
   return parts.length > 0 ? parts.join("\n") : null;

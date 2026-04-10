@@ -57,8 +57,8 @@ describe("grepSearchTool", () => {
     });
 
     if (result.ok) {
-      expect(result.data.matches.some((line) => line.includes("alpha.txt:1:needle"))).toBe(true);
-      expect(result.data.matches.some((line) => line.includes("beta.txt:1:NEEDLE"))).toBe(true);
+      expect(result.data!.matches.some((line) => line.includes("alpha.txt:1:needle"))).toBe(true);
+      expect(result.data!.matches.some((line) => line.includes("beta.txt:1:NEEDLE"))).toBe(true);
     }
   });
 });

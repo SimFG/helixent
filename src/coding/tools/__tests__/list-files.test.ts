@@ -39,8 +39,8 @@ describe("listFilesTool", () => {
     });
 
     if (result.ok) {
-      expect(result.data.entries).toEqual(["README.md", "src/", "src/index.ts"]);
-      expect(result.data.content).toContain("src/index.ts");
+      expect(result.data!.entries).toEqual(["README.md", "src/", "src/index.ts"]);
+      expect(result.data!.content).toContain("src/index.ts");
     }
   });
 

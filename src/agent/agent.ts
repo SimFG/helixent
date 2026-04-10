@@ -12,6 +12,7 @@ import type {
 import type { AgentEvent } from "./agent-event";
 import type { AgentMiddleware } from "./agent-middleware";
 import type { SkillFrontmatter } from "./skills/types";
+import { formatToolResultForMessage } from "./tool-result-runtime";
 
 /**
  * A context that is used to invoke a React agent.
@@ -226,14 +227,14 @@ export class Agent {
         if (!tool) throw new Error(`Tool ${toolUse.name} not found`);
         const beforeResult = await this._beforeToolUse(toolUse);
         if (beforeResult.skip) {
-          return { index, toolUseId: toolUse.id, result: beforeResult.result };
+          return { index, toolUseId: toolUse.id, toolName: toolUse.name, result: beforeResult.result };
         }
         const result = await tool.invoke(toolUse.input, signal);
         await this._afterToolUse(toolUse, result);
-        return { index, toolUseId: toolUse.id, result };
+        return { index, toolUseId: toolUse.id, toolName: toolUse.name, result };
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
-        return { index, toolUseId: toolUse.id, result: `Error: ${message}` };
+        return { index, toolUseId: toolUse.id, toolName: toolUse.name, result: `Error: ${message}` };
       }
     });
 
@@ -261,7 +262,7 @@ export class Agent {
           {
             type: "tool_result",
             tool_use_id: resolved.toolUseId,
-            content: stringifyToolResult(resolved.result),
+            content: formatToolResultForMessage({ toolName: resolved.toolName, result: resolved.result }),
           },
         ],
       };
@@ -359,9 +360,3 @@ export class Agent {
   }
 }
 
-function stringifyToolResult(result: unknown): string {
-  if (result === undefined) return "undefined";
-  if (result === null) return "null";
-  if (typeof result === "object") return JSON.stringify(result);
-  return String(result);
-}

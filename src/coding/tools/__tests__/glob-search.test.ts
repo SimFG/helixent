@@ -39,8 +39,8 @@ describe("globSearchTool", () => {
     });
 
     if (result.ok) {
-      expect(result.data.matches).toEqual([join(tempDir, "src", "index.ts")]);
-      expect(result.data.content).toContain(join(tempDir, "src", "index.ts"));
+      expect(result.data!.matches).toEqual([join(tempDir, "src", "index.ts")]);
+      expect(result.data!.content).toContain(join(tempDir, "src", "index.ts"));
     }
   });
 
