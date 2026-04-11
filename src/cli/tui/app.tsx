@@ -32,7 +32,7 @@ export function App({
   const { streaming, messages, onSubmit, abort } = useAgentLoop();
   const { approvalRequest, respondToApproval } = useApprovalManager();
   const { askUserQuestionRequest, respondWithAnswers } = useAskUserQuestionManager();
-  const { latestTodos, todoSnapshots, toolUses } = useMemo(() => buildTodoViewState(messages), [messages]);
+  const { latestTodos, todoSnapshots } = useMemo(() => buildTodoViewState(messages), [messages]);
   const nextTodo = getNextTodo(latestTodos)?.content;
   const hideTodos = !streaming && allDone(latestTodos);
 
@@ -55,7 +55,6 @@ export function App({
             message={lastMessage}
             messageIndex={messages.length - 1}
             todoSnapshots={todoSnapshots}
-            toolUses={toolUses}
           />
         )}
         {approvalRequest || askUserQuestionRequest ? null : (

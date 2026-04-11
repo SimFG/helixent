@@ -107,6 +107,16 @@ describe("formatToolResultForMessage", () => {
     expect(formatted).toBe(content);
   });
 
+  test("passes through read_file text that starts with Error: verbatim", () => {
+    const content = "Error: this line is part of the file";
+    const formatted = formatToolResultForMessage({
+      toolName: "read_file",
+      result: content,
+    });
+
+    expect(formatted).toBe(content);
+  });
+
   test("formats errors with stable structured shape", () => {
     const formatted = formatToolResultForMessage({
       toolName: "grep_search",

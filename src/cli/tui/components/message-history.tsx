@@ -1,8 +1,7 @@
 import { Box, Text } from "ink";
 import { memo } from "react";
 
-import { summarizeToolResultText } from "@/agent/tool-result-summary";
-import type { AssistantMessage, NonSystemMessage, ToolMessage, ToolUseContent, UserMessage } from "@/foundation";
+import type { AssistantMessage, NonSystemMessage, ToolUseContent, UserMessage } from "@/foundation";
 
 import { currentTheme } from "../themes";
 import { getCurrentTodo, getNextTodo, snapshotKey, type TodoItemView } from "../todo-view";
@@ -13,12 +12,10 @@ export const MessageHistory = memo(function MessageHistory({
   messages,
   startIndex = 0,
   todoSnapshots,
-  toolUses,
 }: {
   messages: NonSystemMessage[];
   startIndex?: number;
   todoSnapshots: Map<string, TodoItemView[]>;
-  toolUses: Map<string, ToolUseContent>;
 }) {
   return (
     <Box flexDirection="column" rowGap={1} width="100%">
@@ -29,7 +26,6 @@ export const MessageHistory = memo(function MessageHistory({
             message={message}
             messageIndex={startIndex + index}
             todoSnapshots={todoSnapshots}
-            toolUses={toolUses}
           />
         );
       })}
@@ -41,12 +37,10 @@ export const MessageHistoryItem = memo(function MessageHistoryItem({
   message,
   messageIndex,
   todoSnapshots,
-  toolUses,
 }: {
   message: NonSystemMessage;
   messageIndex: number;
   todoSnapshots: Map<string, TodoItemView[]>;
-  toolUses: Map<string, ToolUseContent>;
 }) {
   switch (message.role) {
     case "user":
@@ -218,33 +212,6 @@ const ToolUseContentItem = memo(function ToolUseContentItem({
   }
 });
 
-const ToolMessageItem = memo(function ToolMessageItem({
-  message,
-  toolUses,
-}: {
-  message: ToolMessage;
-  toolUses: Map<string, ToolUseContent>;
-}) {
-  const visibleContent = message.content.flatMap((content) => {
-    const toolUse = toolUses.get(content.tool_use_id);
-    const rendered = summarizeToolResult(content.content, toolUse);
-    return rendered ? [{ ...content, content: rendered }] : [];
-  });
-  if (visibleContent.length === 0) return null;
-
-  return (
-    <Box flexDirection="column" width="100%">
-      {visibleContent.map((content, i) => (
-        <Box key={i} columnGap={1}>
-          <Text color={currentTheme.colors.dimText}>✓</Text>
-          <Box flexDirection="column">
-            <Text color={currentTheme.colors.dimText}>{content.content}</Text>
-          </Box>
-        </Box>
-      ))}
-    </Box>
-  );
-});
 
 function getMessageKey(message: NonSystemMessage, index: number) {
   switch (message.role) {
@@ -259,73 +226,4 @@ function getMessageKey(message: NonSystemMessage, index: number) {
     default:
       return `${index}`;
   }
-}
-
-function summarizeAskUserQuestionResult(content: string) {
-  try {
-    const parsed = JSON.parse(content) as {
-      answers?: { question_index?: number; selected_labels?: string[] }[];
-    };
-    if (!parsed.answers?.length) return content;
-    return parsed.answers
-      .map((a) => {
-        const labels = a.selected_labels?.join(", ") ?? "";
-        return `Q${(a.question_index ?? 0) + 1}: ${labels}`;
-      })
-      .join(" · ");
-  } catch {
-    return content;
-  }
-}
-
-function summarizeToolResult(content: string, toolUse?: ToolUseContent) {
-  if (!toolUse) return content;
-  if (content.startsWith("Error:")) return content;
-
-  switch (toolUse.name) {
-    case "todo_write":
-    case "bash":
-    case "write_file":
-    case "str_replace":
-      return null;
-    case "read_file":
-    case "list_files":
-    case "glob_search":
-    case "grep_search":
-    case "file_info":
-    case "mkdir":
-    case "move_path":
-    case "apply_patch":
-      return summarizeToolResultText(content) ?? content;
-    case "ask_user_question":
-      return summarizeAskUserQuestionResult(content);
-    default:
-      return content;
-  }
-}
-
-function summarizeStructuredToolResult(content: string) {
-  try {
-    const parsed = JSON.parse(content) as {
-      ok?: boolean;
-      summary?: unknown;
-      error?: unknown;
-      code?: unknown;
-    };
-
-    if (parsed.ok === true && typeof parsed.summary === "string") {
-      return parsed.summary;
-    }
-
-    if (parsed.ok === false) {
-      const message =
-        typeof parsed.summary === "string" ? parsed.summary : typeof parsed.error === "string" ? parsed.error : content;
-      const code = typeof parsed.code === "string" ? parsed.code : null;
-      return code ? `Error [${code}]: ${message}` : `Error: ${message}`;
-    }
-  } catch {
-    return content;
-  }
-
-  return content;
 }
