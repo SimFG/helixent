@@ -1,6 +1,6 @@
 ---
-name: plan
-description: Enter "plan mode" for a coding task — read the relevant code, optionally ask clarifying questions, design one recommended approach, then write a plain, scannable plans/<prefix>-<short-kebab-name>.md file. No source files are edited in this mode. Use this skill whenever the user says "plan mode", "/plan", "make a plan", "draft a plan first", "give me a plan before you code", "let's plan this out", "write a plan.md", "think before you code on this one", or otherwise asks for a written implementation plan to be produced before any changes happen. Also trigger when the user wants the agent to investigate a codebase and propose an approach without touching files. Even casual phrasing like "don't rush, think it through first" should trigger this skill.
+name: coding-plan
+description: Enter "plan mode" for a coding task — read the relevant code, optionally ask clarifying questions, design one recommended approach, then write a plain, scannable plans/<prefix>-<short-kebab-name>.md file. No source files are edited in this mode. Use this skill whenever the user says "plan mode", "/coding-plan", "make a plan", "draft a plan first", "give me a plan before you code", "let's plan this out", "write a plan.md", "think before you code on this one", or otherwise asks for a written implementation plan to be produced before any changes happen. Also trigger when the user wants the agent to investigate a codebase and propose an approach without touching files. Even casual phrasing like "don't rush, think it through first" should trigger this skill.
 ---
 
 # Plan Mode
