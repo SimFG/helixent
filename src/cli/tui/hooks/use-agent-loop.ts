@@ -6,6 +6,7 @@ import type { AssistantMessage, NonSystemMessage, UserMessage } from "@/foundati
 
 import type { PromptSubmission, SlashCommand } from "../command-registry";
 import { formatHelp, resolveBuiltinCommand } from "../command-registry";
+import { calculateTokenUsage, type TokenUsageSummary } from "../token-usage";
 
 type AgentLoopState = {
   agent: Agent;
@@ -14,7 +15,7 @@ type AgentLoopState = {
   // eslint-disable-next-line no-unused-vars
   onSubmit: (submission: PromptSubmission) => Promise<void>;
   abort: () => void;
-  tokenCount: number;
+  tokenUsage: TokenUsageSummary;
 };
 
 const AgentLoopContext = createContext<AgentLoopState | null>(null);
@@ -75,8 +76,8 @@ export function AgentLoopProvider({
     agent.abort();
   }, [agent]);
 
-  const tokenCount = useMemo(() => {
-    return calculateTotalTokens(messages);
+  const tokenUsage = useMemo(() => {
+    return calculateTokenUsage(messages);
   }, [messages]);
 
   const onSubmit = useCallback(
@@ -150,9 +151,9 @@ export function AgentLoopProvider({
       messages,
       onSubmit,
       abort,
-      tokenCount,
+      tokenUsage,
     }),
-    [abort, agent, messages, onSubmit, streaming, tokenCount],
+    [abort, agent, messages, onSubmit, streaming, tokenUsage],
   );
 
   return createElement(AgentLoopContext.Provider, { value }, children);
@@ -164,17 +165,6 @@ function useAgentLoopState(): AgentLoopState {
     throw new Error("useAgentLoop() must be used within <AgentLoopProvider agent={...}>");
   }
   return state;
-}
-
-function calculateTotalTokens(messages: NonSystemMessage[]): number {
-  return messages.reduce((total, message) => {
-    if (!isAssistantMessage(message)) return total;
-    return total + (message.usage?.totalTokens ?? 0);
-  }, 0);
-}
-
-function isAssistantMessage(message: NonSystemMessage): message is AssistantMessage {
-  return message.role === "assistant";
 }
 
 export function useAgentLoop() {
